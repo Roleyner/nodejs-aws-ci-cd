@@ -40,6 +40,7 @@ resource "aws_iam_user_policy" "publisher" {
         "ecs:DescribeServices",
         "ecs:UpdateService",
         "ecs:RegisterTaskDefinition",
+        "ecr:BatchCheckLayerAvailability",
         "ecr:CompleteLayerUpload",
         "ecr:DescribeRepositories",
         "ecr:ListImages",
@@ -73,6 +74,7 @@ resource "aws_iam_role_policy" "fargate" {
   "Statement": [
     {
       "Action": [
+        "ecr:BatchCheckLayerAvailability",
         "ecr:CompleteLayerUpload",
         "ecr:DescribeRepositories",
         "ecr:ListImages",
