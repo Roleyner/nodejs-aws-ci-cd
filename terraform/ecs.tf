@@ -22,6 +22,14 @@ resource "aws_ecs_task_definition" "task" {
       name      = local.container.name
       image     = local.container.image
       essential = true
+      log_configuration = {
+        log_driver = "awslogs"
+        options = {
+          "awslogs-group"         = aws_cloudwatch_log_group.ecs_logs.name
+          "awslogs-region"        = "eu-west-2"         # Replace with your desired AWS region
+          "awslogs-stream-prefix" = "my-container-logs" # Replace "my-container-logs" with your desired log stream prefix
+        }
+      }
       portMappings = [
         for port in local.container.ports :
         {
@@ -57,4 +65,17 @@ resource "aws_ecs_service" "service" {
     capacity_provider = "FARGATE"
     weight            = 100
   }
+
+  # Enable CloudWatch Logs for the service
+  depends_on = [
+    aws_cloudwatch_log_group.ecs_logs,
+    aws_ecs_cluster.cluster,
+    aws_ecs_task_definition.task
+  ]
+}
+
+# Create a CloudWatch Logs group to store the container logs
+resource "aws_cloudwatch_log_group" "ecs_logs" {
+  name              = "/ecs/ecs-logs" # Replace "my-ecs-logs" with your desired log group name
+  retention_in_days = 7               # Set the desired retention period for log data
 }
