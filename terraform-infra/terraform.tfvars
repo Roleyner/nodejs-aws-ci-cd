@@ -1,0 +1,7 @@
+region          = "eu-west-2"
+repository_name = "nodejs-repo"
+cluster_name    = "awesome-cluster"
+service_name    = "awesome-service"
+container_name  = "hello-world"
+image_name      = "hello-world"
+vpc_id          = "vpc-02559f7e614b4fb26"

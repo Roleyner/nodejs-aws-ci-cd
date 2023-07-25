@@ -1,15 +1,16 @@
 resource "aws_lb" "alb" {
-  name               = local.lb["name"]
-  internal           = local.lb["internal"]
+  name               = "awesome-lb"
+  internal           = false
   load_balancer_type = "application"
+  security_groups    = [aws_security_group.lb_sg.id]
   subnets            = [for s in data.aws_subnet.subnets : s.id]
 }
 
 resource "aws_lb_target_group" "group" {
-  name        = local.lb.target_group["name"]
-  port        = local.lb.target_group["port"]
-  protocol    = local.lb.target_group["protocol"]
-  vpc_id      = data.aws_vpc.vpc.id
+  name        = "awesome-lb-tg"
+  port        = 3000
+  protocol    = "HTTP"
+  vpc_id      = var.vpc_id
   target_type = "ip"
 
   depends_on = [aws_lb.alb]

@@ -1,5 +1,5 @@
 output "aws_region" {
-  value       = local.region
+  value       = var.region
   description = "The AWS region used"
 }
 
@@ -40,6 +40,6 @@ output "ecs_service" {
 }
 
 output "container_name" {
-  value       = local.container.name
+  value       = var.container_name
   description = "Container name for the ECS task"
 }

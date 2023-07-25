@@ -1,5 +1,9 @@
+resource "aws_ecr_repository" "repository" {
+  name = var.repository_name
+}
+
 resource "aws_ecs_cluster" "cluster" {
-  name               = local.ecs["cluster_name"]
+  name               = var.cluster_name
   capacity_providers = ["FARGATE"]
 
   default_capacity_provider_strategy {
@@ -9,32 +13,28 @@ resource "aws_ecs_cluster" "cluster" {
 }
 
 resource "aws_ecs_task_definition" "task" {
-  family = "service"
-  requires_compatibilities = [
-    "FARGATE",
-  ]
-  execution_role_arn = aws_iam_role.fargate.arn
-  network_mode       = "awsvpc"
-  cpu                = 256
-  memory             = 512
+  family                   = "service"
+  requires_compatibilities = ["FARGATE"]
+  execution_role_arn       = aws_iam_role.fargate.arn
+  network_mode             = "awsvpc"
+  cpu                      = 256
+  memory                   = 512
   container_definitions = jsonencode([
     {
-      name      = local.container.name
-      image     = local.container.image
+      name      = var.container_name
+      image     = var.image_name
       essential = true
       log_configuration = {
         log_driver = "awslogs"
         options = {
           "awslogs-group"         = aws_cloudwatch_log_group.ecs_logs.name
-          "awslogs-region"        = "eu-west-2"         # Replace with your desired AWS region
-          "awslogs-stream-prefix" = "my-container-logs" # Replace "my-container-logs" with your desired log stream prefix
+          "awslogs-region"        = var.region
+          "awslogs-stream-prefix" = "container-logs"
         }
       }
       portMappings = [
-        for port in local.container.ports :
         {
-          containerPort = port
-          hostPort      = port
+          containerPort = 3000
         }
       ]
     }
@@ -42,20 +42,21 @@ resource "aws_ecs_task_definition" "task" {
 }
 
 resource "aws_ecs_service" "service" {
-  name            = local.ecs.service_name
+  name            = var.service_name
   cluster         = aws_ecs_cluster.cluster.id
   task_definition = aws_ecs_task_definition.task.arn
-  desired_count   = 1
+  desired_count   = 2
 
   network_configuration {
     subnets          = [for s in data.aws_subnet.subnets : s.id]
     assign_public_ip = true
+    security_groups  = [aws_security_group.ecs_service_sg.id]
   }
 
   load_balancer {
     target_group_arn = aws_lb_target_group.group.arn
-    container_name   = local.container.name
-    container_port   = 80
+    container_name   = var.container_name
+    container_port   = 3000
   }
   deployment_controller {
     type = "ECS"
@@ -66,7 +67,6 @@ resource "aws_ecs_service" "service" {
     weight            = 100
   }
 
-  # Enable CloudWatch Logs for the service
   depends_on = [
     aws_cloudwatch_log_group.ecs_logs,
     aws_ecs_cluster.cluster,
@@ -74,8 +74,7 @@ resource "aws_ecs_service" "service" {
   ]
 }
 
-# Create a CloudWatch Logs group to store the container logs
 resource "aws_cloudwatch_log_group" "ecs_logs" {
-  name              = "/ecs/ecs-logs" # Replace "my-ecs-logs" with your desired log group name
-  retention_in_days = 7               # Set the desired retention period for log data
+  name              = "/ecs/ecs-logs"
+  retention_in_days = 7
 }

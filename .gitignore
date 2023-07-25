@@ -1,15 +1,18 @@
 # Local .terraform directories
-terraform/**/.terraform/*
+terraform-infra/**/.terraform/*
 
 # .tfstate files
-terraform/*.tfstate
-terraform/*.tfstate.*
-terraform/.terraform.lock.hcl
+terraform-infra/*.tfstate
+terraform-infra/*.tfstate.*
+terraform-infra/.terraform.lock.hcl
 
 # Crash log files
-terraform/crash.log
-terraform/crash.*.log
+terraform-infra/crash.log
+terraform-infra/crash.*.log
 
 # Ignore CLI configuration files
-terraform/.terraformrc
-terraform/terraform.rc
+terraform-infra/.terraformrc
+terraform-infra/terraform.rc
+
+# Node modules
+node_modules
