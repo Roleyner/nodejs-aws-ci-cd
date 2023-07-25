@@ -8,7 +8,7 @@ resource "aws_iam_role" "publisher" {
         Action = "sts:AssumeRole"
         Effect = "Allow"
         Principal = {
-          Service = "codebuild.amazonaws.com" # GitHub Actions uses CodeBuild service for role assumption
+          Federated = aws_iam_openid_connect_provider.github_actions_oidc_provider.arn
         }
       }
     ]
@@ -35,7 +35,6 @@ resource "aws_iam_role" "fargate" {
     ]
   })
 }
-
 
 resource "aws_iam_role_policy" "publisher" {
   name = "ecr-publisher-role"
@@ -96,4 +95,14 @@ resource "aws_iam_role_policy" "fargate" {
   ]
 }
 EOF
+}
+
+resource "aws_iam_openid_connect_provider" "github_actions_oidc_provider" {
+  url = "https://token.actions.githubusercontent.com" # GitHub Actions OIDC provider URL
+  client_id_list = [
+    "sigstore.actions.githubusercontent.com", # GitHub Actions token client ID
+    "sts.amazonaws.com"                       # AWS Security Token Service client ID
+  ]
+  # Add an empty list for the thumbprint_list argument
+  thumbprint_list = ["f879abce0008e4eb126e0097e46620f5aaae26ad"]
 }
